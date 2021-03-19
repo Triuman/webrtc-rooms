@@ -13,18 +13,29 @@ app.get('/', function(req, res) {
 });
 
 const users = {};
+const rooms = {
+  asd: true,
+  grgwef: true,
+  cwocwecewcew: true
+};
 
 io.on('connection', (socket) => {
   users[socket.id] = socket;
 
   socket.on('disconnect', () => delete users[socket.id]);
-  socket.on('username', (username) => socket.username = username);
+  socket.on('username', (username) => {
+    socket.username = username;
+    console.log('User logged in -> ' + username);
+    const roomIds = Object.keys(rooms);
+    socket.emit('roomlist', roomIds);
+  });
 
   socket.on('enterroom', (roomId) => {
     if (socket.roomId) socket.leave(socket.roomId);
     socket.join(roomId);
     socket.roomId = roomId;
     socket.emit('joinedroom');
+    rooms[roomId] = true;
   });
 
   socket.on('offer', (offer) => socket.to(socket.roomId).emit('offer', { id: socket.id, offer}));

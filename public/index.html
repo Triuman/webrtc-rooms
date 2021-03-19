@@ -1,13 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta
+        http-equiv="X-UA-Compatible"
+        content="IE=edge"
+    >
     <title>WebRTC Rooms</title>
 
+    <script src="socket.io.min.js"></script>
     <script src="index.js"></script>
 </head>
+
 <body>
-    it is working
+
+    <div id="divConnecting">Connecting to the server..</div>
+
+    <div id="divLogin">
+        <input
+            type="text"
+            id="txtUsername"
+        >
+        <button onclick="login()">Login</button>
+    </div>
+
+    <div id="divRooms">
+        <div id="divRoomList">
+            <div><a
+                    href="#"
+                    onclick="enterRoom('room1')"
+                >room1</a></div>
+        </div>
+
+        <input
+            type="text"
+            id="txtRoomId"
+            placeholder="Room Id"
+        >
+        <button onclick="createRoom()">Create Room</button>
+
+    </div>
+
+    <div id="divRoom">
+        <div
+            id="divCameras"
+            style="display: flex;"
+        >
+        </div>
+    </div>
 </body>
+
 </html>
