@@ -39,6 +39,18 @@ window.onload = () => {
     });
     divRooms.style.display = 'block';
   });
+
+  socket.on('joinedroom', () => {
+    hideAllViews();    
+    divRoom.style.display = 'block';
+    // TODO: Create an offer and send to the server.
+  });
+  socket.on('offer', () => {
+    // TODO: create an answer and send it to server
+  });
+  socket.on('answer', () => {
+    // TODO: create a new webrtc connection using this answer
+  });
 };
 
 function login() {
@@ -49,15 +61,11 @@ function login() {
 
 function enterRoom(roomId) {
     socket.emit('enterroom', roomId);
-    hideAllViews();
-    divRoom.style.display = 'block';
   }
   
 function createRoom() {
     const roomId = txtRoomId.value;
     socket.emit('enterroom', roomId);
-    hideAllViews();
-    divRoom.style.display = 'block';
   }
   
 
