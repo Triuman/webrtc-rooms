@@ -1,0 +1,7 @@
+{
+  "name": "webrtc-room",
+  "version": "0.0.1",
+  "main": "app.js",
+  "author": "triuman",
+  "license": "MIT"
+}
