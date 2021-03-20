@@ -117,6 +117,7 @@ function addPCEventListeners(id) {
   remoteVideo.srcObject = remoteStream;
   remoteVideo.autoplay = true;
   remoteVideo.id = 'peerVideo' + id;
+  remoteVideo.width = 200;
   divCameras.appendChild(remoteVideo);
   peerConnections[id].addEventListener('track', async (event) => {
     remoteStream.addTrack(event.track, remoteStream);

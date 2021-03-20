@@ -1,0 +1,9 @@
+#divLocalStream {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+}
+
+#divCameras {
+  width: 400px;
+}
