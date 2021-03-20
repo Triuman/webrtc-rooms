@@ -17,7 +17,12 @@ const rooms = {};
 io.on('connection', (socket) => {
   users[socket.id] = socket;
 
-  socket.on('disconnect', () => delete users[socket.id]);
+  socket.on('disconnect', () => {
+    if (socket.roomId) {
+      socket.to(socket.roomId).emit('peerleft', socket.id);
+    }
+    delete users[socket.id];
+  });
   socket.on('username', (username) => {
     socket.username = username;
     console.log('User logged in -> ' + username);
@@ -30,10 +35,11 @@ io.on('connection', (socket) => {
     socket.join(roomId);
     socket.roomId = roomId;
     socket.emit('joinedroom');
+    socket.to(roomId).emit('newpeerjoined', socket.id);
     rooms[roomId] = true;
   });
 
-  socket.on('offer', (offer) => socket.to(socket.roomId).emit('offer', { id: socket.id, offer }));
+  socket.on('offer', ({ id, offer }) => socket.to(id).emit('offer', { id: socket.id, offer }));
   socket.on('answer', ({ id, answer }) => socket.to(id).emit('answer', { id: socket.id, answer }));
   socket.on('ice', ({ id, candidate }) => socket.to(id).emit('ice', { id: socket.id, candidate }));
 });

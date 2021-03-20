@@ -9,9 +9,13 @@ let divCameras;
 
 let socket;
 let peerConnections = {};
-let localOffer;
 let localStream;
-const configuration = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
+const configuration = {
+  iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+
+  offerToReceiveAudio: true,
+  offerToReceiveVideo: true,
+};
 
 window.onload = async () => {
   txtUsername = document.getElementById('txtUsername');
@@ -47,21 +51,35 @@ window.onload = async () => {
     divRooms.style.display = 'block';
   });
 
+  socket.on('newpeerjoined', async (newPeerId) => {
+    console.log('New peer joined with id ' + newPeerId);
+    peerConnections[newPeerId] = new RTCPeerConnection([configuration]);
+    addPCEventListeners(newPeerId);
+    localStream.getTracks().forEach((track) => {
+      peerConnections[newPeerId].addTrack(track, localStream);
+      console.log('tracks are added');
+    });
+    const localOffer = await peerConnections[newPeerId].createOffer();
+    await peerConnections[newPeerId].setLocalDescription(localOffer);
+    socket.emit('offer', { id: newPeerId, offer: localOffer });
+    console.log('Sent the offer to the room.');
+  });
+
+  socket.on('peerleft', async (peerId) => {
+    document.getElementById('peerVideo' + peerId).style.display = 'none';
+  });
   socket.on('joinedroom', async () => {
     hideAllViews();
     divRoom.style.display = 'block';
-    // We create this PeerConnection just to get an offer.
-    const pc = new RTCPeerConnection([configuration]);
-    localOffer = await pc.createOffer();
-    socket.emit('offer', localOffer);
-    console.log('Sent the offer to the room.');
   });
   socket.on('offer', async ({ id, offer }) => {
     peerConnections[id] = new RTCPeerConnection([configuration]);
     addPCEventListeners(id);
     localStream.getTracks().forEach((track) => {
       peerConnections[id].addTrack(track, localStream);
+      console.log('tracks are added');
     });
+    console.log('remote desc is set');
     await peerConnections[id].setRemoteDescription(new RTCSessionDescription(offer));
     const answer = await peerConnections[id].createAnswer();
     await peerConnections[id].setLocalDescription(answer);
@@ -69,12 +87,6 @@ window.onload = async () => {
     console.log('Sent answer to user ' + id);
   });
   socket.on('answer', async ({ id, answer }) => {
-    peerConnections[id] = new RTCPeerConnection([configuration]);
-    addPCEventListeners(id);
-    localStream.getTracks().forEach((track) => {
-      peerConnections[id].addTrack(track, localStream);
-    });
-    await peerConnections[id].setLocalDescription(localOffer);
     await peerConnections[id].setRemoteDescription(new RTCSessionDescription(answer));
   });
   socket.on('ice', async ({ id, candidate }) => {
@@ -104,9 +116,11 @@ function addPCEventListeners(id) {
   const remoteVideo = document.createElement('video');
   remoteVideo.srcObject = remoteStream;
   remoteVideo.autoplay = true;
+  remoteVideo.id = 'peerVideo' + id;
   divCameras.appendChild(remoteVideo);
   peerConnections[id].addEventListener('track', async (event) => {
     remoteStream.addTrack(event.track, remoteStream);
+    console.log('Remote track is added.');
   });
 }
 
