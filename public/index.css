@@ -2,8 +2,22 @@
   position: absolute;
   bottom: 0;
   right: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 #divCameras {
+  display: flex;
+  flex-flow: wrap;
+  align-content: flex-start;
   width: 400px;
+}
+
+#divBoard {
+  width: 800px;
+  height: 600px;
+}
+
+.cam-mic-button img {
+  width: 50px;
 }

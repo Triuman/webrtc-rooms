@@ -6,13 +6,19 @@ let divRooms;
 let txtRoomId;
 let divRoom;
 let divCameras;
+let imgCamOn;
+let imgCamOff;
+let imgMicOn;
+let imgMicOff;
 
 let socket;
 let peerConnections = {};
 let localStream;
+let isCamOn = false;
+let isMicOn = false;
+
 const configuration = {
   iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
-
   offerToReceiveAudio: true,
   offerToReceiveVideo: true,
 };
@@ -26,7 +32,13 @@ window.onload = async () => {
   txtRoomId = document.getElementById('txtRoomId');
   divRoom = document.getElementById('divRoom');
   divCameras = document.getElementById('divCameras');
+  imgCamOn = document.getElementById('imgCamOn');
+  imgCamOff = document.getElementById('imgCamOff');
+  imgMicOn = document.getElementById('imgMicOn');
+  imgMicOff = document.getElementById('imgMicOff');
 
+  toggleMic();
+  toggleCam();
   hideAllViews();
   await getLocalStream();
 
@@ -98,6 +110,19 @@ window.onload = async () => {
     }
   });
 };
+
+function toggleMic() {
+  isMicOn = !isMicOn;
+  imgMicOn.style.display = isMicOn ? 'block' : 'none';
+  imgMicOff.style.display = !isMicOn ? 'block' : 'none';
+  if (localStream) localStream.getAudioTracks()[0].enabled = isMicOn;
+}
+function toggleCam() {
+  isCamOn = !isCamOn;
+  imgCamOn.style.display = isCamOn ? 'block' : 'none';
+  imgCamOff.style.display = !isCamOn ? 'block' : 'none';
+  if (localStream) localStream.getVideoTracks()[0].enabled = isCamOn;
+}
 
 function addPCEventListeners(id) {
   peerConnections[id].addEventListener('connectionstatechange', (event) => {

@@ -16,6 +16,28 @@
 
 <body>
     <div id="divLocalStream">
+        <div style="display: flex;justify-content: center;">
+            <div class="cam-mic-button">
+                <img id="imgMicOn"
+                     onclick="toggleMic()"
+                     src="assets/mic-on.png"
+                     alt="microphone on">
+                <img id="imgMicOff"
+                     onclick="toggleMic()"
+                     src="assets/mic-off.png"
+                     alt="microphone off">
+            </div>
+            <div class="cam-mic-button">
+                <img id="imgCamOn"
+                     onclick="toggleCam()"
+                     src="assets/cam-on.png"
+                     alt="camera on">
+                <img id="imgCamOff"
+                     onclick="toggleCam()"
+                     src="assets/cam-off.png"
+                     alt="camera off">
+            </div>
+        </div>
         <video id="localVideo"
                width="200"
                autoplay></video>
@@ -45,10 +67,10 @@
         <div style="display: flex;">
             <div id="divCameras"
                  style="display: flex;">
-                <div id="divBoard">
-                    <canvas id="canvas"
-                            style="width: 100%; height: 100%;"></canvas>
-                </div>
+            </div>
+            <div id="divBoard">
+                <canvas id="canvas"
+                        style="width: 100%; height: 100%;"></canvas>
             </div>
         </div>
     </div>
