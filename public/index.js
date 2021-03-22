@@ -20,7 +20,14 @@ let isMicOn = false;
 let mySnake;
 
 const configuration = {
-  iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+  iceServers: [
+    { urls: 'stun:stun1.l.google.com:19302' },
+    {
+      urls: 'turn:numb.viagenie.ca',
+      credential: 'muazkh',
+      username: 'webrtc@live.com',
+    },
+  ],
   offerToReceiveAudio: true,
   offerToReceiveVideo: true,
 };
@@ -67,7 +74,7 @@ window.onload = async () => {
 
   socket.on('newpeerjoined', async (newPeerId) => {
     console.log('New peer joined with id ' + newPeerId);
-    peerConnections[newPeerId] = new RTCPeerConnection([configuration]);
+    peerConnections[newPeerId] = new RTCPeerConnection(configuration);
     addPCEventListeners(newPeerId);
     localStream.getTracks().forEach((track) => {
       peerConnections[newPeerId].addTrack(track, localStream);
@@ -75,7 +82,7 @@ window.onload = async () => {
     });
     let dataChannel = peerConnections[newPeerId].createDataChannel('snake-update');
     onDataChannel(dataChannel, newPeerId);
-    const localOffer = await peerConnections[newPeerId].createOffer();
+    const localOffer = await peerConnections[newPeerId].createOffer({ iceRestart: true });
     await peerConnections[newPeerId].setLocalDescription(localOffer);
     socket.emit('offer', { id: newPeerId, offer: localOffer });
     console.log('Sent the offer to the room.');
@@ -95,7 +102,7 @@ window.onload = async () => {
     mySnake.onTick();
   });
   socket.on('offer', async ({ id, offer }) => {
-    peerConnections[id] = new RTCPeerConnection([configuration]);
+    peerConnections[id] = new RTCPeerConnection(configuration);
     addPCEventListeners(id);
     localStream.getTracks().forEach((track) => {
       peerConnections[id].addTrack(track, localStream);
@@ -125,6 +132,7 @@ window.onload = async () => {
 function onDataChannel(dataChannel, id) {
   dataChannel.onopen = (event) => {
     console.log('DataChannel is opened!');
+    snakes[id] = new Snake();
     dataChannel.onmessage = (message) => {
       snakes[id].setPoints(JSON.parse(message.data));
     };
@@ -152,7 +160,6 @@ function addPCEventListeners(id) {
     if (peerConnections[id].connectionState === 'connected') {
       // Peers connected!
       console.log('Connected to peer ' + id);
-      snakes[id] = new Snake();
     }
   });
   peerConnections[id].addEventListener('icecandidate', (event) => {
@@ -191,8 +198,8 @@ function enterRoom(roomId) {
 }
 
 function createRoom() {
-  const roomId = txtRoomId.value;
-  socket.emit('enterroom', roomId);
+  const roomId = txtRoomId.value.trim();
+  if (roomId) socket.emit('enterroom', roomId);
 }
 
 function hideAllViews() {

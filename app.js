@@ -1,12 +1,16 @@
+const fs = require('fs');
+var privateKey = fs.readFileSync('certificates/privkey1.pem', 'utf8');
+var certificate = fs.readFileSync('certificates/cert1.pem', 'utf8');
+var credentials = { key: privateKey, cert: certificate };
+
 const express = require('express');
 const app = express();
-const server = require('http').createServer(app);
+const server = require('https').createServer(credentials, app);
 const io = require('socket.io')(server);
 const path = require('path');
 
 app.use(express.static('public'));
 
-// viewed at http://localhost:8080
 app.get('/', function (req, res) {
   res.sendFile(path.join(__dirname + '/index.html'));
 });
@@ -43,5 +47,5 @@ io.on('connection', (socket) => {
   socket.on('answer', ({ id, answer }) => socket.to(id).emit('answer', { id: socket.id, answer }));
   socket.on('ice', ({ id, candidate }) => socket.to(id).emit('ice', { id: socket.id, candidate }));
 });
-const PORT = 3000;
+const PORT = 443;
 server.listen(PORT, () => console.log(`Server listening on port: ${PORT}`));
