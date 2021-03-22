@@ -13,9 +13,11 @@ let imgMicOff;
 
 let socket;
 let peerConnections = {};
+let snakes = {};
 let localStream;
 let isCamOn = false;
 let isMicOn = false;
+let mySnake;
 
 const configuration = {
   iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
@@ -71,6 +73,8 @@ window.onload = async () => {
       peerConnections[newPeerId].addTrack(track, localStream);
       console.log('tracks are added');
     });
+    let dataChannel = peerConnections[newPeerId].createDataChannel('snake-update');
+    onDataChannel(dataChannel, newPeerId);
     const localOffer = await peerConnections[newPeerId].createOffer();
     await peerConnections[newPeerId].setLocalDescription(localOffer);
     socket.emit('offer', { id: newPeerId, offer: localOffer });
@@ -79,10 +83,16 @@ window.onload = async () => {
 
   socket.on('peerleft', async (peerId) => {
     document.getElementById('peerVideo' + peerId).style.display = 'none';
+    snakes[peerId].remove();
   });
   socket.on('joinedroom', async () => {
     hideAllViews();
     divRoom.style.display = 'block';
+    var canvas = document.getElementById('canvas');
+    paper.setup(canvas);
+    mySnake = new Snake();
+    canvas.onmousemove = mySnake.onMouseMove;
+    mySnake.onTick();
   });
   socket.on('offer', async ({ id, offer }) => {
     peerConnections[id] = new RTCPeerConnection([configuration]);
@@ -93,6 +103,7 @@ window.onload = async () => {
     });
     console.log('remote desc is set');
     await peerConnections[id].setRemoteDescription(new RTCSessionDescription(offer));
+    peerConnections[id].ondatachannel = (event) => onDataChannel(event.channel, id);
     const answer = await peerConnections[id].createAnswer();
     await peerConnections[id].setLocalDescription(answer);
     socket.emit('answer', { id, answer });
@@ -110,6 +121,18 @@ window.onload = async () => {
     }
   });
 };
+
+function onDataChannel(dataChannel, id) {
+  dataChannel.onopen = (event) => {
+    console.log('DataChannel is opened!');
+    dataChannel.onmessage = (message) => {
+      snakes[id].setPoints(JSON.parse(message.data));
+    };
+    setInterval(() => {
+      dataChannel.send(JSON.stringify(mySnake.getPoints()));
+    }, 10);
+  };
+}
 
 function toggleMic() {
   isMicOn = !isMicOn;
@@ -129,6 +152,7 @@ function addPCEventListeners(id) {
     if (peerConnections[id].connectionState === 'connected') {
       // Peers connected!
       console.log('Connected to peer ' + id);
+      snakes[id] = new Snake();
     }
   });
   peerConnections[id].addEventListener('icecandidate', (event) => {
