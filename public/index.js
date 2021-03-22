@@ -1,6 +1,4 @@
-let txtUsername;
 let divConnecting;
-let divLogin;
 let divRoomList;
 let divRooms;
 let txtRoomId;
@@ -33,9 +31,7 @@ const configuration = {
 };
 
 window.onload = async () => {
-  txtUsername = document.getElementById('txtUsername');
   divConnecting = document.getElementById('divConnecting');
-  divLogin = document.getElementById('divLogin');
   divRooms = document.getElementById('divRooms');
   divRoomList = document.getElementById('divRoomList');
   txtRoomId = document.getElementById('txtRoomId');
@@ -49,12 +45,13 @@ window.onload = async () => {
   toggleMic();
   toggleCam();
   hideAllViews();
+  divConnecting.style.display = 'block';
   await getLocalStream();
 
   socket = io();
 
   socket.on('connect', () => {
-    divLogin.style.display = 'block';
+    hideAllViews();
     console.log(socket.id);
   });
 
@@ -187,12 +184,6 @@ async function getLocalStream() {
   localVideo.srcObject = localStream;
 }
 
-function login() {
-  const username = txtUsername.value;
-  socket.emit('username', username);
-  hideAllViews();
-}
-
 function enterRoom(roomId) {
   socket.emit('enterroom', roomId);
 }
@@ -204,7 +195,6 @@ function createRoom() {
 
 function hideAllViews() {
   divConnecting.style.display = 'none';
-  divLogin.style.display = 'none';
   divRooms.style.display = 'none';
   divRoom.style.display = 'none';
 }

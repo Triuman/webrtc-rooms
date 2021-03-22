@@ -27,14 +27,10 @@ io.on('connection', (socket) => {
     }
     delete users[socket.id];
   });
-  socket.on('username', (username) => {
-    socket.username = username;
-    console.log('User logged in -> ' + username);
-    const roomIds = Object.keys(rooms);
-    socket.emit('roomlist', roomIds);
-  });
 
   socket.on('enterroom', (roomId) => {
+    roomId = roomId.trim();
+    if (!roomId) return;
     if (socket.roomId) socket.leave(socket.roomId);
     socket.join(roomId);
     socket.roomId = roomId;
@@ -46,6 +42,9 @@ io.on('connection', (socket) => {
   socket.on('offer', ({ id, offer }) => socket.to(id).emit('offer', { id: socket.id, offer }));
   socket.on('answer', ({ id, answer }) => socket.to(id).emit('answer', { id: socket.id, answer }));
   socket.on('ice', ({ id, candidate }) => socket.to(id).emit('ice', { id: socket.id, candidate }));
+
+  const roomIds = Object.keys(rooms);
+  socket.emit('roomlist', roomIds);
 });
 const PORT = 443;
 server.listen(PORT, () => console.log(`Server listening on port: ${PORT}`));
